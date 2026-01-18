@@ -41,6 +41,8 @@ type Config struct {
 	Sender           string        `json:"sender"`
 	TemplateName     string        `json:"template_name"`
 	DefaultPhoneCode string        `json:"default_phone_code"`
+	SMSEntityID      string        `json:"sms_entity_id"`
+	SMSTemplateID    string        `json:"sms_template_id"`
 	Timeout          time.Duration `json:"timeout"`
 	MaxConns         int           `json:"max_conns"`
 }
@@ -114,13 +116,15 @@ func (k *Kaleyra) Push(otp models.OTP, subject string, body []byte) error {
 	if k.channel == ChannelSMS {
 		p.Set("type", "OTP")
 		p.Set("sender", k.cfg.Sender)
+		p.Set("entity_id", k.cfg.SMSEntityID)
+		p.Set("template_id", k.cfg.SMSTemplateID)
 		p.Set("body", string(body))
 	} else {
-		p.Set("type", "template")
+		p.Set("type", "authenticationtemplate")
 		p.Set("channel", "whatsapp")
 		p.Set("from", k.cfg.Sender)
 		p.Set("template_name", k.cfg.TemplateName)
-		p.Set("params", fmt.Sprintf(`"%s"`, otp.OTP))
+		p.Set("verification_code", otp.OTP)
 	}
 
 	// Make the request.
